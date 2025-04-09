@@ -8,9 +8,8 @@ import ch.hearc.cafheg.infrastructure.persistance.AllocataireMapper;
 import ch.hearc.cafheg.infrastructure.persistance.AllocationMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -70,4 +69,103 @@ class AllocationServiceTest {
         () -> assertThat(all.get(1).getFin()).isNull());
   }
 
+  @Test
+  void getParentDroitAllocation_parent1SeulActif_shouldReturnParent1() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(false);
+    demande.setParent1Salaire(BigDecimal.valueOf(4000));
+    demande.setParent2Salaire(BigDecimal.valueOf(2000));
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent1", result);
+  }
+
+  @Test
+  void getParentDroitAllocation_parent2SeulActif_shouldReturnParent2() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(false);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setParent1Salaire(BigDecimal.valueOf(4000));
+    demande.setParent2Salaire(BigDecimal.valueOf(2000));
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent2", result);
+  }
+
+  @Test
+  void getParentDroitAllocation_deuxActifs_parent1SalairePlusHaut_shouldReturnParent1() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setParent1Salaire(BigDecimal.valueOf(5000));
+    demande.setParent2Salaire(BigDecimal.valueOf(3000));
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent1", result);
+  }
+
+  @Test
+  void getParentDroitAllocation_deuxActifs_parent2SalairePlusHaut_shouldReturnParent2() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setParent1Salaire(BigDecimal.valueOf(3000));
+    demande.setParent2Salaire(BigDecimal.valueOf(5000));
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent2", result);
+  }
+
+  @Test
+  void getParentDroitAllocation_deuxActifs_salaireEgal_shouldReturnParent2ParDefaut() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setParent1Salaire(BigDecimal.valueOf(4000));
+    demande.setParent2Salaire(BigDecimal.valueOf(4000));
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent2", result); // Comportement actuel : retourne P2 si égalité
+  }
+
+  @Test
+  void deuxActifs_enfantChezParent1_shouldReturnParent1() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setEnfantResidence("NE");
+    demande.setParent1Residence("NE");
+    demande.setParent2Residence("BE");
+    demande.setParent1Salaire(BigDecimal.valueOf(4000));
+    demande.setParent2Salaire(BigDecimal.valueOf(6000)); // pour vérifier que le salaire ne compte pas encore
+
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent1", result);
+  }
+
+  @Test
+  void deuxActifs_enfantHabiteAilleurs_parent2TravailleDansSonCanton_shouldReturnParent2() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setEnfantResidence("FR");             // Fribourg
+    demande.setParent1Residence("NE");            // Neuchâtel
+    demande.setParent2Residence("FR");            // Parent2 travaille dans le bon canton
+    demande.setParent1Salaire(BigDecimal.valueOf(7000));
+    demande.setParent2Salaire(BigDecimal.valueOf(3000));
+
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent2", result);
+  }
+
+  @Test
+  void deuxActifs_pasDeLienAvecEnfant_salairePlusHautParent1_shouldReturnParent1() {
+    DemandeAllocation demande = new DemandeAllocation();
+    demande.setParent1ActiviteLucrative(true);
+    demande.setParent2ActiviteLucrative(true);
+    demande.setEnfantResidence("FR");
+    demande.setParent1Residence("GE");
+    demande.setParent2Residence("NE");
+    demande.setParent1Salaire(BigDecimal.valueOf(8000));
+    demande.setParent2Salaire(BigDecimal.valueOf(4000));
+
+    String result = allocationService.getParentDroitAllocation(demande);
+    assertEquals("Parent1", result);
+  }
 }
