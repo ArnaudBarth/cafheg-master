@@ -5,6 +5,7 @@ import static ch.hearc.cafheg.infrastructure.persistance.Database.inTransaction;
 import ch.hearc.cafheg.business.allocations.Allocataire;
 import ch.hearc.cafheg.business.allocations.Allocation;
 import ch.hearc.cafheg.business.allocations.AllocationService;
+import ch.hearc.cafheg.business.allocations.ParentAllocationRequest;
 import ch.hearc.cafheg.business.versements.VersementService;
 import ch.hearc.cafheg.infrastructure.pdf.PDFExporter;
 import ch.hearc.cafheg.infrastructure.persistance.AllocataireMapper;
@@ -24,7 +25,7 @@ public class RESTController {
   private final VersementService versementService;
 
   public RESTController() {
-    this.allocationService = new AllocationService(new AllocataireMapper(), new AllocationMapper());
+    this.allocationService = new AllocationService(new AllocataireMapper(), new AllocationMapper(), new VersementMapper());
     this.versementService = new VersementService(new VersementMapper(), new AllocataireMapper(),
         new PDFExporter(new EnfantMapper()));
   }
@@ -43,9 +44,10 @@ public class RESTController {
   }
    */
   @PostMapping("/droits/quel-parent")
-  public String getParentDroitAllocation(@RequestBody Map<String, Object> params) {
-    return inTransaction(() -> allocationService.getParentDroitAllocation(params));
+  public String getParentDroitAllocation(@RequestBody ParentAllocationRequest request) {
+    return inTransaction(() -> allocationService.getParentDroitAllocation(request));
   }
+
 
   @GetMapping("/allocataires")
   public List<Allocataire> allocataires(
@@ -78,4 +80,26 @@ public class RESTController {
   public byte[] pdfVersements(@PathVariable("allocataireId") int allocataireId) {
     return inTransaction(() -> versementService.exportPDFVersements(allocataireId));
   }
+  @DeleteMapping("/allocataires/{allocataireId}")
+  public void supprimerAllocataire(@PathVariable("allocataireId") Long allocataireId) {
+    inTransaction(() -> {
+      allocationService.supprimerAllocataireSiAucunVersement(allocataireId);
+      return null;
+    });
+  }
+
+  @PutMapping("/allocataires/{numero}")
+  public void modifierAllocataire(
+          @PathVariable("numero") Long numero,
+          @RequestBody Map<String, String> payload) {
+
+    String nouveauNom = payload.get("nom");
+    String nouveauPrenom = payload.get("prenom");
+
+    inTransaction(() -> {
+      allocationService.modifierAllocataire(numero, nouveauNom, nouveauPrenom);
+      return null;
+    });
+  }
+
 }

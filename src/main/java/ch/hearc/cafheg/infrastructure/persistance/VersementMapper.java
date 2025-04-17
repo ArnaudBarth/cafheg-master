@@ -18,6 +18,7 @@ public class VersementMapper extends Mapper {
   private final String QUERY_FIND_ALL_VERSEMENTS = "SELECT V.DATE_VERSEMENT,A.MONTANT FROM VERSEMENTS V JOIN VERSEMENTS_ALLOCATIONS VA ON V.NUMERO=VA.FK_VERSEMENTS JOIN ALLOCATIONS_ENFANTS AE ON AE.NUMERO=VA.FK_ALLOCATIONS_ENFANTS JOIN ALLOCATIONS A ON A.NUMERO=AE.FK_ALLOCATIONS";
   private final String QUERY_FIND_ALL_VERSEMENTS_PARENTS_ENFANTS = "SELECT AL.NUMERO AS PARENT_ID, E.NUMERO AS ENFANT_ID, A.MONTANT FROM VERSEMENTS V JOIN VERSEMENTS_ALLOCATIONS VA ON V.NUMERO=VA.FK_VERSEMENTS JOIN ALLOCATIONS_ENFANTS AE ON AE.NUMERO=VA.FK_ALLOCATIONS_ENFANTS JOIN ALLOCATIONS A ON A.NUMERO=AE.FK_ALLOCATIONS JOIN ALLOCATAIRES AL ON AL.NUMERO=V.FK_ALLOCATAIRES JOIN ENFANTS E ON E.NUMERO=AE.FK_ENFANTS";
   private final String QUERY_FIND_ALL_VERSEMENTS_PARENTS_ENFANTS_PAR_MOIS = "SELECT AL.NUMERO AS PARENT_ID, A.MONTANT, V.DATE_VERSEMENT, V.MOIS_VERSEMENT FROM VERSEMENTS V JOIN VERSEMENTS_ALLOCATIONS VA ON V.NUMERO=VA.FK_VERSEMENTS JOIN ALLOCATIONS_ENFANTS AE ON AE.NUMERO=VA.FK_ALLOCATIONS_ENFANTS JOIN ALLOCATIONS A ON A.NUMERO=AE.FK_ALLOCATIONS JOIN ALLOCATAIRES AL ON AL.NUMERO=V.FK_ALLOCATAIRES JOIN ENFANTS E ON E.NUMERO=AE.FK_ENFANTS";
+  private final String QUERY_HAS_VERSEMENTS_FOR_ALLOCATAIRE = "SELECT 1 FROM VERSEMENTS WHERE FK_ALLOCATAIRES = ? FETCH FIRST 1 ROWS ONLY";
 
   public List<VersementAllocationNaissance> findAllVersementAllocationNaissance() {
     System.out.println("findAllVersementAllocationNaissance()");
@@ -38,6 +39,18 @@ public class VersementMapper extends Mapper {
       throw new RuntimeException(e);
     }
   }
+  public boolean hasVersementsForAllocataire(Long allocataireId) {
+    Connection connection = activeJDBCConnection();
+    try {
+      PreparedStatement preparedStatement = connection.prepareStatement(QUERY_HAS_VERSEMENTS_FOR_ALLOCATAIRE);
+      preparedStatement.setLong(1, allocataireId);
+      ResultSet resultSet = preparedStatement.executeQuery();
+      return resultSet.next(); // true = il a des versements
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
   public List<VersementAllocation> findAllVersementAllocation() {
     System.out.println("findAllVersementAllocation()");

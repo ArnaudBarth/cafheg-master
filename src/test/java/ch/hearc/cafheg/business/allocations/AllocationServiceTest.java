@@ -2,6 +2,7 @@ package ch.hearc.cafheg.business.allocations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ch.hearc.cafheg.business.common.Montant;
 import ch.hearc.cafheg.infrastructure.persistance.AllocataireMapper;
@@ -11,9 +12,14 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import ch.hearc.cafheg.infrastructure.persistance.VersementMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 class AllocationServiceTest {
 
@@ -21,13 +27,15 @@ class AllocationServiceTest {
 
   private AllocataireMapper allocataireMapper;
   private AllocationMapper allocationMapper;
+  private VersementMapper versementMapper;
 
   @BeforeEach
   void setUp() {
     allocataireMapper = Mockito.mock(AllocataireMapper.class);
     allocationMapper = Mockito.mock(AllocationMapper.class);
+    versementMapper = Mockito.mock(VersementMapper.class);
 
-    allocationService = new AllocationService(allocataireMapper, allocationMapper);
+    allocationService = new AllocationService(allocataireMapper, allocationMapper, versementMapper);
   }
 
   @Test
@@ -68,6 +76,50 @@ class AllocationServiceTest {
         () -> assertThat(all.get(1).getCanton()).isEqualTo(Canton.FR),
         () -> assertThat(all.get(1).getDebut()).isEqualTo(LocalDate.now()),
         () -> assertThat(all.get(1).getFin()).isNull());
+  }
+
+  @Test
+  void testParent1ALSeulement() {
+    ParentAllocationRequest request = new ParentAllocationRequest(
+            "", true, "", false, "", false, BigDecimal.valueOf(5000), BigDecimal.valueOf(0)
+    );
+
+    AllocationService service = new AllocationService(null, null, null);
+    String result = service.getParentDroitAllocation(request);
+    assertEquals("Parent1", result);
+  }
+
+  @Test
+  void testParent2ALSeulement() {
+    ParentAllocationRequest request = new ParentAllocationRequest(
+            "", false, "", true, "", false, BigDecimal.valueOf(0), BigDecimal.valueOf(4000)
+    );
+
+    AllocationService service = new AllocationService(null, null, null);
+    String result = service.getParentDroitAllocation(request);
+    assertEquals("Parent2", result);
+  }
+
+  @Test
+  void testDeuxParentsAL_SalaireParent1PlusGrand() {
+    ParentAllocationRequest request = new ParentAllocationRequest(
+            "", true, "", true, "", true, BigDecimal.valueOf(8000), BigDecimal.valueOf(4000)
+    );
+
+    AllocationService service = new AllocationService(null, null, null);
+    String result = service.getParentDroitAllocation(request);
+    assertEquals("Parent1", result);
+  }
+
+  @Test
+  void testDeuxParentsAL_SalaireParent2PlusGrand() {
+    ParentAllocationRequest request = new ParentAllocationRequest(
+            "", true, "", true, "", false, BigDecimal.valueOf(2000), BigDecimal.valueOf(4000)
+    );
+
+    AllocationService service = new AllocationService(null, null, null);
+    String result = service.getParentDroitAllocation(request);
+    assertEquals("Parent2", result);
   }
 
 }

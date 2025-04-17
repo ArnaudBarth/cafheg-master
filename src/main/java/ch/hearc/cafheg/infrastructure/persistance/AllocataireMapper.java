@@ -14,6 +14,11 @@ public class AllocataireMapper extends Mapper {
   private static final String QUERY_FIND_ALL = "SELECT NOM,PRENOM,NO_AVS FROM ALLOCATAIRES";
   private static final String QUERY_FIND_WHERE_NOM_LIKE = "SELECT NOM,PRENOM,NO_AVS FROM ALLOCATAIRES WHERE NOM LIKE ?";
   private static final String QUERY_FIND_WHERE_NUMERO = "SELECT NO_AVS, NOM, PRENOM FROM ALLOCATAIRES WHERE NUMERO=?";
+  private final String QUERY_DELETE_ALLOCATAIRE = "DELETE FROM ALLOCATAIRES WHERE NUMERO = ?";
+  private final String QUERY_UPDATE_ALLOCATAIRE = "UPDATE ALLOCATAIRES SET NOM = ?, PRENOM = ? WHERE NUMERO = ?";
+  private final String QUERY_FIND_ALLOCATAIRE_BY_NUMERO = "SELECT NUMERO, NO_AVS, NOM, PRENOM FROM ALLOCATAIRES WHERE NUMERO = ?";
+
+
 
   public List<Allocataire> findAll(String likeNom) {
     System.out.println("findAll() " + likeNom);
@@ -69,4 +74,46 @@ public class AllocataireMapper extends Mapper {
       throw new RuntimeException(e);
     }
   }
+  public void supprimerAllocataireParId(Long allocataireId) {
+    Connection connection = activeJDBCConnection();
+    try {
+      PreparedStatement preparedStatement = connection.prepareStatement(QUERY_DELETE_ALLOCATAIRE);
+      preparedStatement.setLong(1, allocataireId);
+      preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  public void modifierNomPrenom(Long numero, String nom, String prenom) {
+    Connection connection = activeJDBCConnection();
+    try {
+      PreparedStatement ps = connection.prepareStatement(QUERY_UPDATE_ALLOCATAIRE);
+      ps.setString(1, nom);
+      ps.setString(2, prenom);
+      ps.setLong(3, numero); // On utilise bien la PK réelle
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Allocataire findByNumero(Long numero) {
+    Connection connection = activeJDBCConnection();
+    try {
+      PreparedStatement ps = connection.prepareStatement(QUERY_FIND_ALLOCATAIRE_BY_NUMERO);
+      ps.setLong(1, numero);
+      ResultSet rs = ps.executeQuery();
+      if (rs.next()) {
+        return new Allocataire(
+                new NoAVS(rs.getString("NO_AVS")),
+                rs.getString("NOM"),
+                rs.getString("PRENOM")
+        );
+      }
+      return null;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }
