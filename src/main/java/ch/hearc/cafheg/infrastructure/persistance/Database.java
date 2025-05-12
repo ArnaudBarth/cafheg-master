@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Database {
   /** Pool de connections JDBC */
@@ -13,6 +15,8 @@ public class Database {
 
   /** Connection JDBC active par utilisateur/thread (ThreadLocal) */
   private static final ThreadLocal<Connection> connection = new ThreadLocal<>();
+
+  private static final Logger logger = LoggerFactory.getLogger(Database.class);
 
   /**
    * Retourne la transaction active ou throw une Exception si pas de transaction
@@ -33,21 +37,21 @@ public class Database {
    * @return Le résultat de l'éxécution de la fonction
    */
   public static <T> T inTransaction(Supplier<T> inTransaction) {
-    System.out.println("inTransaction#start");
+    logger.debug("inTransaction#start");
     try {
-      System.out.println("inTransaction#getConnection");
+      logger.debug("inTransaction#getConnection");
       connection.set(dataSource.getConnection());
       return inTransaction.get();
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
       try {
-        System.out.println("inTransaction#closeConnection");
+        logger.error("inTransaction#closeConnection");
         connection.get().close();
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
-      System.out.println("inTransaction#end");
+      logger.debug("inTransaction#end");
       connection.remove();
     }
   }
@@ -60,12 +64,12 @@ public class Database {
    * Initialisation du pool de connections.
    */
   public void start() {
-    System.out.println("Initializing datasource");
+    logger.info("Initializing datasource");
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl("jdbc:h2:mem:sample");
     config.setMaximumPoolSize(20);
     config.setDriverClassName("org.h2.Driver");
     dataSource = new HikariDataSource(config);
-    System.out.println("Datasource initialized");
+    logger.info("Datasource initialized");
   }
 }

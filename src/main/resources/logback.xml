@@ -1,0 +1,55 @@
+<configuration>
+    <timestamp key="byDay" datePattern="yyyy-MM-dd"/>
+
+    <!-- Pour erreurs - err.log -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/err.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- Pour les logs journaliers info -->
+    <appender name="INFO_SERVICE_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/cafheg_${byDay}.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss} %-5level [%logger{36}] - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- Console pour debug -->
+    <appender name="CONSOLE_DEBUG" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} %-5level [%logger{36}] - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+    </appender>
+
+    <!-- Logger pour les packages ch.* (erreurs) -->
+    <logger name="ch" level="ERROR" additivity="false">
+        <appender-ref ref="ERROR_FILE"/>
+    </logger>
+
+    <!-- Logger pour les services (info) -->
+    <logger name="ch.hearc.cafheg.business" level="INFO" additivity="false">
+        <appender-ref ref="INFO_SERVICE_FILE"/>
+    </logger>
+
+    <!-- Logger générique debug console -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE_DEBUG"/>
+    </root>
+</configuration>
