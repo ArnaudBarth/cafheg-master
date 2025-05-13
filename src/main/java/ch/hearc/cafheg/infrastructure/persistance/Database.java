@@ -25,6 +25,7 @@ public class Database {
    */
   static Connection activeJDBCConnection() {
     if(connection.get() == null) {
+      logger.error("Aucune connexion JDBC active pour ce thread");
       throw new RuntimeException("Pas de connection JDBC active");
     }
     return connection.get();
@@ -41,18 +42,25 @@ public class Database {
     try {
       logger.debug("inTransaction#getConnection");
       connection.set(dataSource.getConnection());
-      return inTransaction.get();
+      T result = inTransaction.get();
+      logger.debug("inTransaction#getConnection");
+      return result;
     } catch (Exception e) {
+      logger.error("Erreur pendant l'exécution de la transaction", e);
       throw new RuntimeException(e);
     } finally {
       try {
-        logger.error("inTransaction#closeConnection");
-        connection.get().close();
+        if (connection.get() != null) {
+          connection.get().close();
+          logger.error("inTransaction#closeConnection");
+        }
       } catch (SQLException e) {
+        logger.error("Erreur lors de la fermeture de la connexion JDBC", e);
         throw new RuntimeException(e);
+      } finally {
+        connection.remove();
+        logger.debug("inTransaction#end");
       }
-      logger.debug("inTransaction#end");
-      connection.remove();
     }
   }
 
@@ -65,11 +73,15 @@ public class Database {
    */
   public void start() {
     logger.info("Initializing datasource");
+
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl("jdbc:h2:mem:sample");
+    logger.debug("JDBC URL utilisée : {}", config.getJdbcUrl());
+
     config.setMaximumPoolSize(20);
     config.setDriverClassName("org.h2.Driver");
     dataSource = new HikariDataSource(config);
+
     logger.info("Datasource initialized");
   }
 }

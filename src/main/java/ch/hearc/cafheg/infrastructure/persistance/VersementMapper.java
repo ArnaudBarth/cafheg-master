@@ -25,69 +25,92 @@ public class VersementMapper extends Mapper {
   public List<VersementAllocationNaissance> findAllVersementAllocationNaissance() {
     logger.debug("findAllVersementAllocationNaissance()");
     Connection connection = activeJDBCConnection();
-      try {
-        PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL_ALLOCATIONS_NAISSANCE);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        List<VersementAllocationNaissance> versements = new ArrayList<>();
-        while (resultSet.next()) {
-          logger.debug("resultSet#next");
-          versements.add(
-              new VersementAllocationNaissance(new Montant(resultSet.getBigDecimal(2)),
-                  resultSet.getDate(1).toLocalDate()));
-        }
-        return versements;
-      } catch (SQLException e) {
+    try {
+      PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL_ALLOCATIONS_NAISSANCE);
+      ResultSet resultSet = preparedStatement.executeQuery();
+      List<VersementAllocationNaissance> versements = new ArrayList<>();
+      int count = 0;
+
+      while (resultSet.next()) {
+        logger.debug("Mapping versement depuis resultSet, ligne {}", ++count);
+        versements.add(
+                new VersementAllocationNaissance(new Montant(
+                        resultSet.getBigDecimal(2)),
+                        resultSet.getDate(1).toLocalDate()));
+      }
+
+      logger.debug("Nombre de versements allocation naissance : {}", versements.size());
+      return versements;
+
+    } catch (SQLException e) {
+      logger.error("Erreur lors de la récupération des versements allocation naissance", e);
       throw new RuntimeException(e);
     }
   }
 
   public boolean hasVersementsForAllocataire(Long allocataireId) {
+    logger.debug("hasVersementsForAllocataire() {}", allocataireId);
     Connection connection = activeJDBCConnection();
+
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(QUERY_HAS_VERSEMENTS_FOR_ALLOCATAIRE);
       preparedStatement.setLong(1, allocataireId);
       ResultSet resultSet = preparedStatement.executeQuery();
-      return resultSet.next(); // true = il a des versements
+      boolean hasVersements = resultSet.next();
+      logger.debug("Présence de versements : {}", hasVersements);
+      return hasVersements; // true = il a des versements
     } catch (SQLException e) {
+      logger.error("Erreur lors de la vérification des versements pour l'allocataire {}", allocataireId, e);
       throw new RuntimeException(e);
     }
   }
 
   public List<VersementAllocation> findAllVersementAllocation() {
-    logger.debug("findAllVersementAllocation()");
+    logger.debug("findAllVersementAllocation() - récupération des versements d'allocation");
     Connection connection = activeJDBCConnection();
+
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL_VERSEMENTS);
       ResultSet resultSet = preparedStatement.executeQuery();
       List<VersementAllocation> versements = new ArrayList<>();
+      int count = 0;
+
       while (resultSet.next()) {
-        logger.debug("resultSet#next");
-        versements.add(
-            new VersementAllocation(new Montant(resultSet.getBigDecimal(2)),
+        logger.debug("resultSet#next - ligne {}", ++count);
+        versements.add(new VersementAllocation(new Montant(
+                resultSet.getBigDecimal(2)),
                 resultSet.getDate(1).toLocalDate()));
       }
+
+      logger.debug("Nombre de versements allocation : {}", versements.size());
       return versements;
     } catch (SQLException e) {
+      logger.error("Erreur lors de la récupération des versements pour l'allocation", e);
       throw new RuntimeException(e);
     }
   }
 
   public List<VersementParentEnfant> findVersementParentEnfant() {
-    logger.debug("findVersementParentEnfant()");
+    logger.debug("findVersementParentEnfant() - Récupération des versements parent-enfant");
     Connection connection = activeJDBCConnection();
 
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL_VERSEMENTS_PARENTS_ENFANTS);
       ResultSet resultSet = preparedStatement.executeQuery();
       List<VersementParentEnfant> versements = new ArrayList<>();
-      logger.debug("resultSet#next");
+      int count = 0;
+
       while (resultSet.next()) {
-        versements.add(
-            new VersementParentEnfant(resultSet.getLong(1), resultSet.getLong(2),
+        logger.debug("resultSet#next - ligne {}", ++count);
+        versements.add(new VersementParentEnfant(
+                resultSet.getLong(1), resultSet.getLong(2),
                 new Montant(resultSet.getBigDecimal(3))));
       }
+
+      logger.debug("Nombre de versements parent-enfant : {}", versements.size());
       return versements;
     } catch (SQLException e) {
+      logger.error("Erreur lors de la récupération des versements parent-enfant", e);
       throw new RuntimeException(e);
     }
   }
@@ -95,20 +118,27 @@ public class VersementMapper extends Mapper {
   public List<VersementParentParMois> findVersementParentEnfantParMois() {
     logger.debug("findVersementParentEnfantParMois()");
     Connection connection = activeJDBCConnection();
+
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL_VERSEMENTS_PARENTS_ENFANTS_PAR_MOIS);
       ResultSet resultSet = preparedStatement.executeQuery();
       List<VersementParentParMois> versements = new ArrayList<>();
-      while (resultSet.next()) {
-        logger.debug("resultSet#next");
-        versements.add(
-            new VersementParentParMois(resultSet.getLong(1),
-                new Montant(resultSet.getBigDecimal(2)),
-                resultSet.getDate(3).toLocalDate(), resultSet.getDate(4).toLocalDate()));
+      int count = 0;
 
+      while (resultSet.next()) {
+        logger.debug("resultSet#next - ligne {}", ++count);
+        versements.add(
+            new VersementParentParMois(
+                    resultSet.getLong(1),
+                    new Montant(resultSet.getBigDecimal(2)),
+                    resultSet.getDate(3).toLocalDate(),
+                    resultSet.getDate(4).toLocalDate()));
       }
+
+      logger.debug("Nombre de versements parent-enfant-mois : {}", versements.size());
       return versements;
     } catch (SQLException e) {
+      logger.error("Erreur lors de la récupération des versements parent-enfant-mois", e);
       throw new RuntimeException(e);
     }
   }

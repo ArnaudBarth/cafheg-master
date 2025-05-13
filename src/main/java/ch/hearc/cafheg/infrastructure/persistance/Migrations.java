@@ -28,16 +28,23 @@ public class Migrations {
     // et pas les scripts d'insertion de données.
     if(forTest) {
       location =  "classpath:db/ddl";
+      logger.debug("Mode test activé : migrations depuis {}", location);
     } else {
       location =  "classpath:db";
+      logger.debug("Mode normal : migrations depuis {}", location);
     }
 
-    Flyway flyway = Flyway.configure()
-        .dataSource(database.dataSource())
-        .locations(location)
-        .load();
+    try {
+      Flyway flyway = Flyway.configure()
+              .dataSource(database.dataSource())
+              .locations(location)
+              .load();
 
-    flyway.migrate();
-    logger.info("Migrations done");
+      flyway.migrate();
+      logger.info("Migrations done");
+    } catch (Exception e) {
+      logger.error("Echec lors de l'exécution des migrations Flyway", e);
+      throw new RuntimeException("Erreur lors des migrations", e);
+    }
   }
 }

@@ -31,47 +31,82 @@ public class VersementService {
 
   public byte[] exportPDFVersements(long allocataireId) {
     logger.info("Exporter le PDF des versements pour l'allocataire {}", allocataireId);
-    List<VersementParentParMois> versementParentEnfantParMois = versementMapper
-        .findVersementParentEnfantParMois();
+    try {
+      List<VersementParentParMois> versementParentEnfantParMois = versementMapper
+              .findVersementParentEnfantParMois();
 
-    Map<LocalDate, Montant> montantParMois = versementParentEnfantParMois.stream()
-        .filter(v -> v.getParentId() == allocataireId)
-        .collect(toMap(VersementParentParMois::getMois,
-            v -> new Montant(v.getMontant().getValue()),
-            (v1, v2) -> new Montant(v1.value.add(v2.value))));
+      Map<LocalDate, Montant> montantParMois = versementParentEnfantParMois.stream()
+              .filter(v -> v.getParentId() == allocataireId)
+              .collect(toMap(VersementParentParMois::getMois,
+                      v -> new Montant(v.getMontant().getValue()),
+                      (v1, v2) -> new Montant(v1.value.add(v2.value))));
 
-    Allocataire allocataire = allocataireMapper.findById(allocataireId);
+      if (montantParMois.isEmpty()) {
+        logger.warn("Aucun versement trouvé pour l'allocataire {}", allocataireId);
+      }
 
-    return pdfExporter.generatePDFVversement(allocataire, montantParMois);
+      Allocataire allocataire = allocataireMapper.findById(allocataireId);
+      if (allocataire == null) {
+        logger.error("Allocataire {} introuvable", allocataireId);
+        throw new IllegalArgumentException("Allocataire introuvable");
+      }
+
+      return pdfExporter.generatePDFVversement(allocataire, montantParMois);
+    } catch (Exception e) {
+      logger.error("Erreur lors de l'export PDF des versements pour l'allocataire {}", allocataireId, e);
+      throw e;
+    }
+
   }
 
   public Montant findSommeAllocationNaissanceParAnnee(int year) {
     logger.info("Rechercher la somme des allocations de naissances pour l'année {}", year);
-    List<VersementAllocationNaissance> versements = versementMapper
-        .findAllVersementAllocationNaissance();
-
-    return VersementAllocationNaissance.sommeParAnnee(versements, year);
+    try {
+      List<VersementAllocationNaissance> versements = versementMapper
+              .findAllVersementAllocationNaissance();
+      return VersementAllocationNaissance.sommeParAnnee(versements, year);
+    } catch (Exception e) {
+      logger.error("Erreur lors du calcul des allocations naissance pour l'année {}", year, e);
+      throw e;
+    }
   }
 
   public Montant findSommeAllocationParAnnee(int year) {
     logger.info("Rechercher la somme des allocations  {}", year);
-    List<VersementAllocation> versements = versementMapper
-        .findAllVersementAllocation();
-
-    return VersementAllocation.sommeParAnnee(versements, year);
+    try {
+      List<VersementAllocation> versements = versementMapper
+              .findAllVersementAllocation();
+      return VersementAllocation.sommeParAnnee(versements, year);
+    }catch (Exception e) {
+      logger.error("Erreur lors du calcul des allocations pour l'année {}", year, e);
+      throw e;
+    }
   }
 
   public byte[] exportPDFAllocataire(long allocataireId) {
     logger.info("Exporter les PDF pour l'allocataire: {}", allocataireId);
-    List<VersementParentEnfant> versements = versementMapper.findVersementParentEnfant();
+    try {
+      List<VersementParentEnfant> versements = versementMapper.findVersementParentEnfant();
 
-    Map<Long, Montant> montantsParEnfant = versements.stream()
-        .filter(v -> v.getParentId() == allocataireId)
-        .collect(Collectors.toMap(VersementParentEnfant::getEnfantId,
-            VersementParentEnfant::getMontant, (v1, v2) -> v1));
+      Map<Long, Montant> montantsParEnfant = versements.stream()
+              .filter(v -> v.getParentId() == allocataireId)
+              .collect(Collectors.toMap(VersementParentEnfant::getEnfantId,
+                      VersementParentEnfant::getMontant, (v1, v2) -> v1));
 
-    Allocataire allocataire = allocataireMapper.findById(allocataireId);
+      if (montantsParEnfant.isEmpty()) {
+        logger.warn("Aucun versement trouvé pour l'allocataire {}", allocataireId);
+      }
 
-    return pdfExporter.generatePDFAllocataire(allocataire, montantsParEnfant);
+      Allocataire allocataire = allocataireMapper.findById(allocataireId);
+      if (allocataire == null) {
+        logger.error("Allocataire {} introuvable", allocataireId);
+        throw new IllegalArgumentException("Allocataire introuvable");
+      }
+
+      return pdfExporter.generatePDFAllocataire(allocataire, montantsParEnfant);
+    } catch (Exception e) {
+      logger.error("Erreur lors de l'export PDF de l'allocataire {}", allocataireId, e);
+      throw e;
+    }
   }
 }

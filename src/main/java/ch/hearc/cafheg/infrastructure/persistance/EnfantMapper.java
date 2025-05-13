@@ -14,18 +14,27 @@ public class EnfantMapper extends Mapper {
   private static final Logger logger = LoggerFactory.getLogger(EnfantMapper.class);
 
   public Enfant findById(long id) {
-    logger.debug("Recherche d'un enfant par son id {}", id);
+    logger.debug("findById() - Recherche d'un enfant par son id {}", id);
     Connection connection = activeJDBCConnection();
 
     try {
+      logger.debug("SQL exécutée : {}", QUERY_FIND_ENFANT_BY_ID);
       PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ENFANT_BY_ID);
       preparedStatement.setLong(1, id);
       ResultSet resultSet = preparedStatement.executeQuery();
-      logger.debug("resultSet#next");
-      resultSet.next();
-      return new Enfant(new NoAVS(resultSet.getString(1)),
-          resultSet.getString(2), resultSet.getString(3));
+
+      if (resultSet.next()) {
+        logger.debug("Enfant trouvé, mapping en cours");
+        return new Enfant(new NoAVS(
+                resultSet.getString(1)),
+                resultSet.getString(2),
+                resultSet.getString(3));
+      } else {
+        logger.warn("Aucun enfant trouvé avec l'ID {}", id);
+        return null;
+      }
     } catch (SQLException e) {
+      logger.error("Erreur lors de la recherche de l'enfant avec l'ID {}", id, e);
       throw new RuntimeException(e);
     }
   }

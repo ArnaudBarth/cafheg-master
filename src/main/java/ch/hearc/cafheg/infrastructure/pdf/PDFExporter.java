@@ -23,9 +23,9 @@ public class PDFExporter {
     this.enfantMapper = enfantMapper;
   }
 
-  public byte[] generatePDFVversement(Allocataire allocataire,
-      Map<LocalDate, Montant> montantParMois) {
-    logger.info("Génération du PDF des versements");
+  public byte[] generatePDFVversement(Allocataire allocataire, Map<LocalDate, Montant> montantParMois) {
+    logger.info("Génération du PDF des versements pour l'allocataire {}", allocataire.getNoAVS());
+
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       PDDocument document = new PDDocument();
@@ -44,12 +44,14 @@ public class PDFExporter {
 
       int i = 0;
       for (Map.Entry<LocalDate, Montant> entry : montantParMois.entrySet()) {
+        logger.debug("Ajout ligne PDF : {} => {} CHF", entry.getKey(), entry.getValue());
         LocalDate dv = entry.getKey();
         contentStream.beginText();
         contentStream.newLineAtOffset(25, 450 - (i * 24));
         contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
         contentStream.showText(dv.toString());
         contentStream.endText();
+
         contentStream.beginText();
         contentStream.newLineAtOffset(300, 450 - (i * 24));
         contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
@@ -58,22 +60,19 @@ public class PDFExporter {
 
         i++;
       }
-
       contentStream.close();
-
       document.save(baos);
       document.close();
 
       logger.info("PDF généré");
       return baos.toByteArray();
-    } catch (
-        IOException e) {
+    } catch (IOException e) {
+      logger.error("Erreur lors de la génération du PDF des versements", e);
       throw new RuntimeException(e);
     }
   }
 
-  public byte[] generatePDFAllocataire(Allocataire allocataire,
-      Map<Long, Montant> montantsParEnfant) {
+  public byte[] generatePDFAllocataire(Allocataire allocataire, Map<Long, Montant> montantsParEnfant) {
     logger.info("Génération du PDF pour un allocataire");
 
     try {
@@ -97,12 +96,15 @@ public class PDFExporter {
       for (Map.Entry<Long, Montant> entry : montantsParEnfant.entrySet()) {
         long eId = entry.getKey();
         Enfant enfant = enfantMapper.findById(eId);
+        logger.debug("Ajout enfant au PDF : {} {} ({}) -> {} CHF", enfant.getNom(), enfant.getPrenom(), enfant.getNoAVS().getValue(), entry.getValue().getValue());
+
         contentStream.beginText();
         contentStream.newLineAtOffset(25, 450 - (i * 24));
         contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
         contentStream.showText(
             enfant.getNom() + " " + enfant.getPrenom() + " (" + enfant.getNoAVS().getValue() + ")");
         contentStream.endText();
+
         contentStream.beginText();
         contentStream.newLineAtOffset(300, 450 - (i * 24));
         contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
@@ -119,8 +121,8 @@ public class PDFExporter {
 
       logger.info("PDF généré");
       return baos.toByteArray();
-    } catch (
-        IOException e) {
+    } catch (IOException e) {
+      logger.error("Erreur lors de la génération du PDF des allocations", e);
       throw new RuntimeException(e);
     }
   }

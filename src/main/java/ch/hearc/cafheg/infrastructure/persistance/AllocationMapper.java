@@ -17,25 +17,30 @@ public class AllocationMapper extends Mapper {
   private static final Logger logger = LoggerFactory.getLogger(AllocationMapper.class);
 
   public List<Allocation> findAll() {
-    logger.debug("Recherche de toutes les allocations");
+    logger.debug("findAll() - récupération de toutes les allocations");
     Connection connection = activeJDBCConnection();
 
     try {
       logger.debug("SQL: {}", QUERY_FIND_ALL);
-      PreparedStatement preparedStatement = connection
-          .prepareStatement(QUERY_FIND_ALL);
+      PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_ALL);
       ResultSet resultSet = preparedStatement.executeQuery();
       List<Allocation> allocations = new ArrayList<>();
+      int count = 0;
 
       while (resultSet.next()) {
-        logger.debug("resultSet#next");
+        logger.debug("Mapping allocation depuis resultSet, ligne {}", ++count);
         allocations.add(
-            new Allocation(new Montant(resultSet.getBigDecimal(2)),
-                Canton.fromValue(resultSet.getString(3)), resultSet.getDate(4).toLocalDate(),
-                resultSet.getDate(5) != null ? resultSet.getDate(5).toLocalDate() : null));
+            new Allocation(new Montant(
+                    resultSet.getBigDecimal(2)),
+                    Canton.fromValue(resultSet.getString(3)),
+                    resultSet.getDate(4).toLocalDate(),
+                    resultSet.getDate(5) != null ? resultSet.getDate(5).toLocalDate() : null));
       }
+
+      logger.debug("Nombre total d'allocations récupérées : {}", allocations.size());
       return allocations;
     } catch (SQLException e) {
+      logger.error("Erreur SQL lors de la récupération des allocations", e);
       throw new RuntimeException(e);
     }
   }
