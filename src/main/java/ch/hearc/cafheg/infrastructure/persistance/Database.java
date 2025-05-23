@@ -15,6 +15,11 @@ public class Database {
 
   /** Connection JDBC active par utilisateur/thread (ThreadLocal) */
   private static final ThreadLocal<Connection> connection = new ThreadLocal<>();
+  private static final ThreadLocal<Connection> testConnection = new ThreadLocal<>();
+
+  public static void setTestConnection(Connection conn) {
+    testConnection.set(conn);
+  }
 
   private static final Logger logger = LoggerFactory.getLogger(Database.class);
 
@@ -24,6 +29,9 @@ public class Database {
    * @return Connection JDBC active
    */
   static Connection activeJDBCConnection() {
+    if (testConnection.get() != null) {
+      return testConnection.get();
+    }
     if(connection.get() == null) {
       logger.error("Aucune connexion JDBC active pour ce thread");
       throw new RuntimeException("Pas de connection JDBC active");
