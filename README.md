@@ -103,15 +103,15 @@ git clone https://github.com/ArnaudBarth/cafheg-master.git
 cd cafheg-master
 ```
 
-2. Ouvrir le dossier `cafheg-master` dans IntelliJ IDEA :
+1. Ouvrir le dossier `cafheg-master` dans IntelliJ IDEA :
    - Configurer le projet pour utiliser Java 11
    - Vérifier que tous les `.jar` du dossier `lib/` sont bien attachés au classpath
 
-3. Lancer l’application :
+2. Lancer l’application :
    - Ouvrir la classe `Application.java` (dans `ch.hearc.cafheg.infrastructure.application`)
    - Faire un clic droit sur la méthode `main()` et sélectionner **Run 'Application.main()'**
 
-4. Accéder à l’API :
+3. Accéder à l’API :
    - Application : [http://localhost:8080/](http://localhost:8080/)
    - Interface Swagger : [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
