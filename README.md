@@ -1,3 +1,4 @@
+
 # CAFHEG — Système de gestion des demandes d’allocations
 
 ## Description
@@ -85,7 +86,6 @@ L’application est principalement destinée aux agents administratifs ou à des
 - **JUnit 5**, **Mockito**, **AssertJ** (frameworks de test unitaire)
 - **SLF4J + Logback** (système de journalisation)
 - **Dépendances gérées manuellement via le dossier `lib/`**
-
 ---
 
 ## Installation
