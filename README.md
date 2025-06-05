@@ -1,6 +1,7 @@
 
 # CAFHEG — Système de gestion des demandes d’allocations
-
+![Built with coffee](https://img.shields.io/badge/Built%20with-to_much_coffee_☕-white)
+![Powered by Students](https://img.shields.io/badge/Powered_by-HE--ARC-red)
 ## Description
 
 CAFHEG est une application web développée en Java avec Spring Boot, permettant de gérer les demandes d’allocations dans un cadre administratif suisse (cantonal). Elle offre une interface REST pour :
@@ -235,7 +236,7 @@ Projet réalisé dans le cadre du cours **Pratiques de développement** à la **
 Antoine Induni — [antoine.induni@he-arc.ch](mailto:antoine.induni@he-arc.ch)
 
 **Étudiant·e·s**
-- Mélanie L'épée — [melanie.lepee@he-arc.ch](mailto:melanie.lepee@he-arc.ch)
+- Mélanie L'Epée — [melanie.lepee@he-arc.ch](mailto:melanie.lepee@he-arc.ch)
 - Arnaud Barth — [arnaud.barth@he-arc.ch](mailto:arnaud.barth@he-arc.ch)
 - Praveen Prabaharan — [praveen.prabaharan@he-arc.ch](mailto:praveen.prabaharan@he-arc.ch)
 - Ismaël Lehmann — [ismael.lehmann@he-arc.ch](mailto:ismael.lehmann@he-arc.ch)
